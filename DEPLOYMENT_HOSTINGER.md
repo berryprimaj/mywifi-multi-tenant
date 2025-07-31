@@ -18,24 +18,46 @@ Panduan lengkap untuk deploy MikroTik Hotspot Management System ke Hostinger Sha
 
 ## 🚀 Langkah-langkah Deployment
 
-### Step 1: Persiapan File Project
+### Step 0: Clone Repository dari GitHub
 
-#### 1.1 Build Frontend React
+#### 0.1 Clone Project
 ```bash
-cd frontend
-npm run build
+git clone https://github.com/berryprimaj/myhotspot.git
+cd myhotspot
 ```
 
-#### 1.2 Siapkan Backend Laravel
+**✅ BACKEND SUDAH BERSIH DI GITHUB:**
+- ❌ **vendor/** - Tidak di-commit (akan di-install via composer)
+- ❌ **.env** - Tidak di-commit (akan dibuat manual)
+- ❌ **storage/logs/** - Tidak di-commit (akan dibuat otomatis)
+- ❌ **node_modules/** - Tidak di-commit (akan di-install via npm)
+- ❌ **database.sqlite** - Tidak di-commit (akan dibuat via migration)
+- ✅ **Source code** - Bersih dan production-ready
+
+### Step 1: Persiapan File Project
+
+#### 1.1 Install Dependencies Backend
 ```bash
 cd backend
 composer install --optimize-autoloader --no-dev
+```
+
+#### 1.2 Build Frontend React
+```bash
+cd ../frontend
+npm install
+npm run build
+```
+
+#### 1.3 Optimize Laravel untuk Production
+```bash
+cd ../backend
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
 
-#### 1.3 Compress Project
+#### 1.4 Compress Project
 - Zip folder `backend/` menjadi `backend.zip`
 - Zip folder `frontend/dist/` menjadi `frontend.zip`
 
@@ -80,7 +102,7 @@ public_html/
 ```
 
 #### 3.3 Konfigurasi .env
-Edit file `public_html/api/.env`:
+Buat file `public_html/api/.env` (karena tidak di-commit ke GitHub):
 ```env
 APP_NAME="MikroTik Hotspot Management"
 APP_ENV=production
@@ -92,6 +114,7 @@ LOG_CHANNEL=stack
 LOG_DEPRECATIONS_CHANNEL=null
 LOG_LEVEL=error
 
+# Database MySQL (Hostinger)
 DB_CONNECTION=mysql
 DB_HOST=localhost
 DB_PORT=3306
@@ -106,6 +129,7 @@ QUEUE_CONNECTION=sync
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
 
+# CORS & Sanctum Configuration
 SANCTUM_STATEFUL_DOMAINS=yourdomain.com
 SESSION_DOMAIN=yourdomain.com
 CORS_ALLOWED_ORIGINS=https://yourdomain.com
@@ -116,7 +140,17 @@ MIKROTIK_PORT=8728
 MIKROTIK_HTTP_PORT=80
 MIKROTIK_USERNAME=admin
 MIKROTIK_PASSWORD=
+
+# Multi-tenant Configuration
+TENANT_CACHE_TTL=3600
+DEFAULT_TENANT_THEME=light
 ```
+
+**🔑 Generate APP_KEY:**
+```bash
+php artisan key:generate --show
+```
+Copy output dan paste ke `APP_KEY=`
 
 ### Step 4: Setup Permissions & Folders
 
@@ -210,9 +244,32 @@ php artisan migrate --force
 php artisan db:seed --force
 ```
 
+**✅ MIGRATIONS YANG AKAN DIJALANKAN:**
+- `create_users_table` - User authentication
+- `create_tenants_table` - Multi-tenant system
+- `create_settings_table` - Application settings
+- `create_members_table` - Member management
+- `create_mikrotik_configs_table` - Router configurations
+- `create_personal_access_tokens_table` - Sanctum authentication
+
+**✅ SEEDERS YANG AKAN DIJALANKAN:**
+- `UserSeeder` - Default admin user (admin/admin)
+- `TenantSeeder` - Sample tenant data
+- `SettingsSeeder` - Default application settings
+
 #### 7.2 Via phpMyAdmin (alternatif)
 1. Export database dari development
 2. Import ke production database via phpMyAdmin
+
+#### 7.3 Verify Database Setup
+```bash
+# Check tables created
+php artisan tinker
+>>> \DB::select('SHOW TABLES');
+
+# Check default admin user
+>>> \App\Models\User::first();
+```
 
 ### Step 8: Testing & Verification
 
@@ -284,6 +341,32 @@ Add to `.htaccess`:
 </IfModule>
 ```
 
+## ✅ Verifikasi Backend Bersih di GitHub
+
+**BACKEND REPOSITORY SUDAH PRODUCTION-READY:**
+
+### 🚫 Files yang TIDAK di-commit (Aman):
+- ❌ `backend/vendor/` - Dependencies (install via composer)
+- ❌ `backend/.env` - Environment secrets (buat manual)
+- ❌ `backend/storage/logs/` - Runtime logs (generated)
+- ❌ `backend/node_modules/` - Node dependencies (install via npm)
+- ❌ `backend/database.sqlite` - Development database (use MySQL)
+- ❌ `backend/.phpunit.result.cache` - Test cache
+- ❌ `backend/storage/framework/cache/` - Application cache
+- ❌ `backend/storage/framework/sessions/` - Session files
+- ❌ `backend/storage/framework/views/` - Compiled views
+
+### ✅ Files yang DI-commit (Source Code):
+- ✅ `backend/app/` - Application logic
+- ✅ `backend/config/` - Configuration files
+- ✅ `backend/database/migrations/` - Database structure
+- ✅ `backend/database/seeders/` - Sample data
+- ✅ `backend/routes/` - API routes
+- ✅ `backend/composer.json` - Dependencies list
+- ✅ `backend/.gitignore` - Laravel-specific ignores
+
+**🎯 HASIL: Repository siap untuk production deployment!**
+
 ## 🔐 Security Checklist
 
 - ✅ Set `APP_DEBUG=false`
@@ -293,6 +376,8 @@ Add to `.htaccess`:
 - ✅ Configure CORS properly
 - ✅ Hide sensitive files with `.htaccess`
 - ✅ Regular backup database
+- ✅ No sensitive data in repository
+- ✅ Environment variables properly configured
 
 ## 🎯 Final URLs
 
