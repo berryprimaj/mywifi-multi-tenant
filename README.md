@@ -54,6 +54,7 @@ mywifi/
 ### Backend
 - **Laravel 10** - PHP Framework
 - **SQLite** - Database (development)
+- **MySQL** - Database (production)
 - **Laravel Sanctum** - Authentication
 - **MikroTik API** - Router integration
 
@@ -70,6 +71,7 @@ mywifi/
 - Node.js 18+
 - Composer
 - MikroTik Router dengan API enabled
+- **MySQL 5.7+** (untuk production)
 
 ## 🚀 Quick Start
 
@@ -80,13 +82,27 @@ cd mywifi-multi-tenant
 ```
 
 ### 2. Backend Setup
+
+#### Development (SQLite)
 ```bash
 cd backend
 composer install
 cp .env.example .env
+# Edit .env: DB_CONNECTION=sqlite
 php artisan key:generate
 php artisan migrate
 php artisan serve --host=127.0.0.1 --port=8000
+```
+
+#### Production (MySQL)
+```bash
+cd backend
+composer install
+cp .env.example .env
+# Edit .env: DB_CONNECTION=mysql dan konfigurasi MySQL
+php artisan key:generate
+php artisan migrate
+php artisan serve --host=0.0.0.0 --port=8000
 ```
 
 ### 3. Frontend Setup
@@ -103,21 +119,37 @@ npm run dev
 ## ⚙️ Konfigurasi
 
 ### Environment Variables
+
+#### Development (SQLite)
 ```env
 # Backend (.env)
 DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
+```
 
-# MikroTik Settings
-MIKROTIK_HOST=your.router.ip
-MIKROTIK_PORT=8728
-MIKROTIK_USERNAME=admin
-MIKROTIK_PASSWORD=password
+#### Production (MySQL)
+```env
+# Backend (.env)
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=mywifi_production
+DB_USERNAME=your_mysql_username
+DB_PASSWORD=your_mysql_password
+```
 
-# Fonnte WhatsApp API
-FONTE_API_KEY=your_api_key
-FONTE_DEVICE_ID=your_device_id
-FONTE_PHONE_NUMBER=your_phone_number
+### Database Setup
+
+#### SQLite (Development)
+- Otomatis dibuat saat `php artisan migrate`
+- File: `backend/database/database.sqlite`
+
+#### MySQL (Production)
+```sql
+CREATE DATABASE mywifi_production;
+CREATE USER 'mywifi_user'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON mywifi_production.* TO 'mywifi_user'@'localhost';
+FLUSH PRIVILEGES;
 ```
 
 ### MikroTik Configuration
@@ -160,11 +192,21 @@ Host: mikrotik.ddns.net
 
 ### Production Checklist
 - [ ] Set environment variables
-- [ ] Configure database (MySQL/PostgreSQL)
+- [ ] Configure MySQL database
 - [ ] Set up web server (Nginx/Apache)
 - [ ] Configure SSL certificates
 - [ ] Set up backup system
 - [ ] Configure logging
+
+### Database Migration
+```bash
+# Backup SQLite (jika ada)
+cp backend/database/database.sqlite backend/database/backup.sqlite
+
+# Setup MySQL
+# Edit .env dengan konfigurasi MySQL
+php artisan migrate:fresh --seed
+```
 
 ### Hosting Platforms
 - **Aapanel**: [DEPLOYMENT_AAPANEL.md](DEPLOYMENT_AAPANEL.md)
@@ -208,6 +250,7 @@ Untuk bantuan dan pertanyaan:
 - ✅ Real-time notifications
 - ✅ Dark/Light theme
 - ✅ Responsive design
+- ✅ SQLite (development) & MySQL (production) support
 
 ---
 
