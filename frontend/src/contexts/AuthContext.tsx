@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import authService from '../services/authService';
-import { supabase } from '../integrations/supabase/client'; // Import Supabase client
 
 // Represents the currently logged-in user (without password)
 export interface User {
@@ -20,12 +19,12 @@ export interface Admin extends User {
 
 interface AuthContextType {
   user: User | null;
-  admins: Admin[]; // Still keep for now for local admin management, will be migrated later
+  admins: Admin[]; // Local admin management
   login: (username: string, password: string) => Promise<User | null>;
   logout: () => void;
-  addAdmin: (admin: Omit<Admin, 'id' | 'permissions'>) => void; // Will be updated to use Supabase
-  updateUser: (userId: string, updates: Partial<Admin>) => void; // Will be updated to use Supabase
-  deleteAdmin: (userId: string) => void; // Will be updated to use Supabase
+  addAdmin: (admin: Omit<Admin, 'id' | 'permissions'>) => void;
+  updateUser: (userId: string, updates: Partial<Admin>) => void;
+  deleteAdmin: (userId: string) => void;
   isAuthenticated: boolean;
   hasPermission: (permission: string) => boolean;
   resetAuth: () => void;
@@ -41,7 +40,7 @@ export const useAuth = () => {
   return context;
 };
 
-// Default admin for initial setup, will be managed by Supabase later
+// Default admin for initial setup
 const defaultAdmins: Admin[] = [
   {
     id: '1',
@@ -84,44 +83,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   });
 
-  // Supabase session listener (now mocked)
+  // Local authentication session management
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // This part will not be reached if Supabase is mocked
-        const loggedInUser: User = {
-          id: session.user.id,
-          username: session.user.email || 'unknown',
-          email: session.user.email || '',
-          role: 'super_admin',
-          permissions: ['*'],
-          tenantId: 'default-tenant',
-        };
-        setUser(loggedInUser);
-        localStorage.setItem('auth-user-session', JSON.stringify(loggedInUser)); // Persist user session
-        toast.success('Logged in successfully (Supabase)!');
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        localStorage.removeItem('auth-user-session'); // Clear user session
-        toast.success('Logged out successfully (Supabase)!');
-      } else if (event === 'INITIAL_SESSION' && session) {
-        const loggedInUser: User = {
-          id: session.user.id,
-          username: session.user.email || 'unknown',
-          email: session.user.email || '',
-          role: 'super_admin',
-          permissions: ['*'],
-          tenantId: 'default-tenant',
-        };
-        setUser(loggedInUser);
-        localStorage.setItem('auth-user-session', JSON.stringify(loggedInUser)); // Persist user session
-      } else if (event === 'INITIAL_SESSION' && !session) {
-        setUser(null);
-        localStorage.removeItem('auth-user-session'); // Clear user session
+    // Check for existing session on app load
+    const savedUser = localStorage.getItem('auth-user-session');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
+        setUser(user);
+      } catch (error) {
+        console.error('Error parsing saved user session:', error);
+        localStorage.removeItem('auth-user-session');
       }
-    });
-
-    return () => subscription.unsubscribe();
+    }
   }, []);
 
   // Effect to persist the list of admins (still using localStorage for this list for now)
@@ -213,21 +187,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('Backend logout failed');
     }
 
-    if (supabase.auth) {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Supabase logout error:', error.message);
-      }
-    }
-
-    // Always clear local session
+    // Clear local session
     setUser(null);
     localStorage.removeItem('auth-user-session');
     toast.success('Logged out successfully!');
   };
 
-  // These functions will need to be updated to use Supabase database operations
-  // For now, they will still operate on the local 'admins' state.
+  // These functions operate on the local 'admins' state for now
   const addAdmin = useCallback((adminData: Omit<Admin, 'id' | 'permissions'>) => {
     const newAdmin: Admin = {
       id: Date.now().toString(), // Temporary ID
@@ -236,7 +202,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       tenantId: adminData.tenantId || 'default-tenant',
     };
     setAdmins((prevAdmins) => [...prevAdmins, newAdmin]);
-    toast.success('New administrator added locally. (Will use Supabase later)');
+    toast.success('New administrator added successfully!');
   }, []);
 
   const updateUser = useCallback((userId: string, updates: Partial<Admin>) => {
@@ -245,12 +211,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         admin.id === userId ? { ...admin, ...updates } : admin
       )
     );
-    toast.success('User updated locally. (Will use Supabase later)');
+    toast.success('User updated successfully!');
   }, []);
 
   const deleteAdmin = useCallback((userId: string) => {
     setAdmins(prevAdmins => prevAdmins.filter(admin => admin.id !== userId));
-    toast.success('Administrator deleted locally. (Will use Supabase later)');
+    toast.success('Administrator deleted successfully!');
   }, []);
 
   const resetAuth = useCallback(() => {
