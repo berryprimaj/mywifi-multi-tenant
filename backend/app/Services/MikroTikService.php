@@ -26,12 +26,50 @@ class MikroTikService
     }
 
     /**
+     * Resolve domain name to IP address
+     */
+    private function resolveDomain($domain): ?string
+    {
+        try {
+            $ip = gethostbyname($domain);
+            return ($ip !== $domain) ? $ip : null;
+        } catch (Exception $e) {
+            Log::error("DNS resolution failed for domain: $domain - " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Validate if host is a domain and resolve it
+     */
+    private function validateAndResolveHost($host): string
+    {
+        // Check if it's already an IP address
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return $host;
+        }
+
+        // Try to resolve domain
+        $resolvedIp = $this->resolveDomain($host);
+        if ($resolvedIp) {
+            Log::info("DDNS resolved: $host -> $resolvedIp");
+            return $resolvedIp;
+        }
+
+        // If resolution fails, return original host (will likely fail connection)
+        Log::warning("DDNS resolution failed for: $host");
+        return $host;
+    }
+
+    /**
      * Make HTTP request to MikroTik REST API
      */
     private function makeRequest($endpoint, $method = 'GET', $data = null): array
     {
         try {
-            $url = "http://{$this->host}:{$this->httpPort}/rest{$endpoint}";
+            // Resolve DDNS if needed
+            $resolvedHost = $this->validateAndResolveHost($this->host);
+            $url = "http://{$resolvedHost}:{$this->httpPort}/rest{$endpoint}";
 
             $response = Http::timeout($this->timeout)
                 ->withBasicAuth($this->username, $this->password)
@@ -231,6 +269,82 @@ class MikroTikService
             ];
         } catch (Exception $e) {
             Log::error('Failed to get interfaces: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get PPP connections (for IP publik detection)
+     */
+    public function getPPPConnections(): array
+    {
+        try {
+            $result = $this->makeRequest('/ppp/active');
+
+            if (!$result['success']) {
+                throw new Exception('Failed to get PPP connections');
+            }
+
+            $connections = [];
+            foreach ($result['data'] as $connection) {
+                $connections[] = [
+                    'name' => $connection['name'],
+                    'service' => $connection['service'],
+                    'caller_id' => $connection['caller-id'] ?? 'Unknown',
+                    'address' => $connection['address'] ?? 'Unknown',
+                    'uptime' => $connection['uptime'] ?? 'Unknown',
+                    'encoding' => $connection['encoding'] ?? 'Unknown',
+                    'session_id' => $connection['session-id'] ?? 'Unknown'
+                ];
+            }
+
+            return [
+                'success' => true,
+                'data' => $connections
+            ];
+        } catch (Exception $e) {
+            Log::error('Failed to get PPP connections: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get public IP from PPP connections
+     */
+    public function getPublicIP(): array
+    {
+        try {
+            $pppResult = $this->getPPPConnections();
+            
+            if (!$pppResult['success']) {
+                throw new Exception('Failed to get PPP connections for IP detection');
+            }
+
+            $publicIPs = [];
+            foreach ($pppResult['data'] as $connection) {
+                if (!empty($connection['caller_id']) && $connection['caller_id'] !== 'Unknown') {
+                    $publicIPs[] = [
+                        'connection_name' => $connection['name'],
+                        'public_ip' => $connection['caller_id'],
+                        'service' => $connection['service'],
+                        'uptime' => $connection['uptime']
+                    ];
+                }
+            }
+
+            return [
+                'success' => true,
+                'data' => $publicIPs,
+                'message' => count($publicIPs) > 0 ? 'Found ' . count($publicIPs) . ' public IP(s)' : 'No public IPs found'
+            ];
+        } catch (Exception $e) {
+            Log::error('Failed to get public IP: ' . $e->getMessage());
             return [
                 'success' => false,
                 'message' => $e->getMessage()

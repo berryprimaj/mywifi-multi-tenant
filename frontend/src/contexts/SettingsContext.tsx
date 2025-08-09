@@ -15,6 +15,11 @@ interface Settings {
 export interface ApiKeys {
   fonteApiKey: string;
   fonteDeviceId: string;
+  fontePhoneNumber: string;
+  fonteOtpEnabled: boolean;
+  fonteOtpExpiry: number;
+  fonteOtpLength: number;
+  fonteOtpTemplate: string;
   googleClientId: string;
   googleClientSecret: string;
   googleRedirectUri: string;
@@ -65,6 +70,11 @@ const defaultAdminSettings: Settings = {
 const defaultApiKeys: ApiKeys = {
   fonteApiKey: '',
   fonteDeviceId: '',
+  fontePhoneNumber: '',
+  fonteOtpEnabled: false,
+  fonteOtpExpiry: 300,
+  fonteOtpLength: 6,
+  fonteOtpTemplate: 'Kode OTP Anda adalah: {otp}. Berlaku selama {expiry} menit. Jangan bagikan kode ini kepada siapapun.',
   googleClientId: '',
   googleClientSecret: '',
   googleRedirectUri: 'https://yourdomain.com/auth/google/callback',

@@ -13,6 +13,7 @@ import HotspotProfilesTable from './routerconfig/HotspotProfilesTable';
 import AddHotspotProfileModal from './routerconfig/AddHotspotProfileModal';
 import AddInterfaceModal from './routerconfig/AddInterfaceModal';
 
+
 // Define types for data used in this component and passed to children
 type Interface = {
   name: string;
@@ -251,6 +252,8 @@ const RouterConfig = () => {
           isOnlineMode={isOnlineMode}
           setIsOnlineMode={setIsOnlineMode}
         />
+
+
 
         <RouterStatusOverview
           handleBackup={handleBackup}

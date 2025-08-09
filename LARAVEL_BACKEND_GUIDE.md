@@ -211,8 +211,8 @@ Untuk integrasi dengan MikroTik, Fonte WhatsApp, dan Google, Anda akan menggunak
     *   Gunakan library PHP untuk MikroTik API (misalnya, `routeros/php-routeros-api` atau `laravie/mikrotik`).
     *   Implementasikan logika koneksi dan perintah API di service atau repository layer.
     *   Detail konfigurasi kredensial ada di `API_CONFIGURATION_GUIDE.md`.
-*   **Fonte WhatsApp API**:
-    *   Gunakan Guzzle HTTP Client untuk membuat permintaan ke API Fonte.id.
+*   **Fonnte WhatsApp API**:
+    *   Gunakan Guzzle HTTP Client untuk membuat permintaan ke API Fonnte.com.
     *   Detail konfigurasi kredensial ada di `API_CONFIGURATION_GUIDE.md`.
 *   **Google OAuth**:
     *   Gunakan Laravel Socialite (`laravel/socialite`) untuk mengelola alur OAuth 2.0 dengan Google.

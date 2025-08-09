@@ -9,7 +9,6 @@ import {
   User,
   LogOut,
   Search,
-  Bell,
   Wifi,
   Building2, // New icon for Tenant Management
   Sun, // Icon for light mode
@@ -18,7 +17,8 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useTenant } from '../../contexts/TenantContext'; // Import useTenant
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import NotificationDropdown from './NotificationDropdown';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,6 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { tenants, activeTenantId, selectTenant, getActiveTenant } = useTenant(); // Get getActiveTenant
   const navigate = useNavigate();
   const location = useLocation();
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   // Effect to apply dark/light mode class to the html element for the admin panel
   useEffect(() => {
@@ -60,6 +61,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       }
     }
   }, []); // Run only on mount, no state updates
+
+  // Effect to close notification dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (isNotificationOpen && !target.closest('.notification-dropdown')) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isNotificationOpen]);
 
   // Define all possible menu items
   const allMenuItems = [
@@ -92,6 +108,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const currentTenant = getActiveTenant(); // Get the active tenant object
 
   // Determine the status of the active tenant's MikroTik configuration
+  // Note: This checks the current tenant's settings from SettingsContext
+  // The apiKeys are already tenant-specific through SettingsContext
   const isMikrotikConfigured = 
     apiKeys.mikrotikHost &&
     apiKeys.mikrotikPort &&
@@ -139,7 +157,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="mt-4">
               <label htmlFor="tenant-select" className="block text-xs font-medium text-slate-400 mb-1">
                 Active Tenant: 
-                <span className={`inline-block w-2.5 h-2.5 rounded-full ml-2 ${statusDotColor}`} title={statusTooltip}></span>
+                <span 
+                  className={`inline-block w-2.5 h-2.5 rounded-full ml-2 ${statusDotColor} transition-colors duration-200`} 
+                  title={`${statusTooltip} - ${currentTenant?.name || 'Unknown Tenant'}`}
+                ></span>
               </label>
               <select
                 id="tenant-select"
@@ -153,6 +174,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </option>
                 ))}
               </select>
+              
+              {/* Status indicator with more details */}
+              <div className="mt-2 text-xs">
+                <div className={`flex items-center space-x-2 ${isMikrotikConfigured ? 'text-green-400' : 'text-yellow-400'}`}>
+                  <span className={`w-2 h-2 rounded-full ${statusDotColor}`}></span>
+                  <span>{isMikrotikConfigured ? 'MikroTik Ready' : 'MikroTik Not Configured'}</span>
+                </div>
+                {!isMikrotikConfigured && (
+                  <p className="text-slate-500 mt-1 text-xs">
+                    Configure MikroTik settings in Router Config
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -213,10 +247,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {adminSettings.themeMode === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </button>
 
-              <button className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </button>
+              <NotificationDropdown 
+                isOpen={isNotificationOpen}
+                onToggle={() => setIsNotificationOpen(!isNotificationOpen)}
+              />
               
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">

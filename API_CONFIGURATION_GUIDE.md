@@ -36,34 +36,91 @@ MIKROTIK_USERNAME=hotspot-api # Username yang Anda buat di Langkah 2
 MIKROTIK_PASSWORD=your_secure_password # Password yang Anda buat di Langkah 2
 ```
 
-*   **`MIKROTIK_HOST`**: Ini adalah alamat IP publik router MikroTik Anda atau nama domain DDNS jika Anda menggunakannya. Jika aplikasi di-deploy di jaringan lokal yang sama dengan MikroTik, bisa juga IP lokal MikroTik.
+*   **`MIKROTIK_HOST`**: Ini adalah alamat IP publik router MikroTik Anda atau nama domain DDNS jika Anda menggunakannya. Jika aplikasi di-deploy di jaringan lokal yang sama dengan MikroTik, bisa juga IP lokal MikroTik. **Fitur DDNS otomatis akan meresolusi domain menjadi IP address.** **IP publik dapat diambil dari PPP connections di MikroTik router Anda.**
 *   **`MIKROTIK_PORT`**: Port API MikroTik, defaultnya 8728.
 *   **`MIKROTIK_USERNAME`**: Username API yang Anda buat di MikroTik.
 *   **`MIKROTIK_PASSWORD`**: Password untuk username API tersebut.
 
-## 2. Konfigurasi Fonte WhatsApp API
+## 2. Konfigurasi Fonnte WhatsApp API
 
-Aplikasi ini menggunakan Fonte API untuk mengirim OTP via WhatsApp.
+Aplikasi ini menggunakan Fonnte API untuk mengirim OTP via WhatsApp.
 
-### Langkah 1: Dapatkan Kredensial Fonte API Anda
+### Langkah 1: Dapatkan Kredensial Fonnte API Anda
 
-1.  **Kunjungi Fonte.id:** Buka situs web [https://fonte.id](https://fonte.id).
+1.  **Kunjungi Fonnte.com:** Buka situs web [https://fonnte.com](https://fonnte.com).
 2.  **Daftar/Login:** Buat akun atau masuk ke akun Anda.
-3.  **Dapatkan API Key dan Device ID:** Di dashboard Fonte.id, Anda akan menemukan `API Key` dan `Device ID` Anda. Pastikan perangkat WhatsApp Anda sudah terhubung dan aktif di Fonte.id.
+3.  **Dapatkan API Key, Device ID, dan Nomor Telepon:** Di dashboard Fonnte.com, Anda akan menemukan:
+    - **API Key**: Kunci API untuk autentikasi
+    - **Device ID**: ID perangkat WhatsApp (format: `device_xxxxx`)
+    - **Nomor Telepon**: Nomor WhatsApp yang terdaftar (format: `+6281234567890`)
+    
+    Pastikan perangkat WhatsApp Anda sudah terhubung dan aktif di Fonnte.com.
 
 ### Langkah 2: Konfigurasi Variabel Lingkungan di Aplikasi Laravel
 
-Di file `.env` proyek Laravel Anda, tambahkan atau perbarui kredensial Fonte API Anda:
+Di file `.env` proyek Laravel Anda, tambahkan atau perbarui kredensial Fonnte API Anda:
 
 ```env
 FONTE_API_KEY=your_fonte_api_key_here
-FONTE_DEVICE_ID=your_fonte_device_id_here
+FONTE_DEVICE_ID=device_123456789
+FONTE_PHONE_NUMBER=+6281234567890
 ```
 
-*   **`FONTE_API_KEY`**: Kunci API yang Anda dapatkan dari Fonte.id.
-*   **`FONTE_DEVICE_ID`**: ID perangkat WhatsApp Anda yang terdaftar di Fonte.id.
+*   **`FONTE_API_KEY`**: Kunci API yang Anda dapatkan dari Fonnte.com.
+*   **`FONTE_DEVICE_ID`**: ID perangkat WhatsApp Anda yang terdaftar di Fonnte.com (bukan nomor telepon).
+*   **`FONTE_PHONE_NUMBER`**: Nomor telepon WhatsApp yang terdaftar di Fonnte.com.
 
-## 3. Konfigurasi Integrasi Google (OAuth)
+## 3. Konfigurasi DDNS (Dynamic DNS)
+
+### Fitur DDNS Otomatis
+
+Aplikasi ini mendukung DDNS (Dynamic DNS) untuk koneksi MikroTik. Fitur ini memungkinkan Anda menggunakan nama domain DDNS sebagai pengganti IP address statis.
+
+#### Cara Kerja DDNS:
+1. **Input Domain**: Masukkan nama domain DDNS Anda (misal: `your-router.ddns.net`)
+2. **Resolusi Otomatis**: Sistem akan otomatis meresolusi domain menjadi IP address
+3. **Test DDNS**: Gunakan tombol "Test DDNS" untuk memverifikasi resolusi
+4. **Koneksi Real-time**: Setiap request ke MikroTik akan menggunakan IP yang ter-resolve
+
+#### Contoh Konfigurasi DDNS:
+```env
+# Menggunakan DDNS
+MIKROTIK_HOST=your-router.ddns.net
+
+# Atau menggunakan IP statis
+MIKROTIK_HOST=123.45.67.89
+```
+
+#### Testing DDNS:
+- Klik tombol "Test DDNS" di form Router Config
+- Sistem akan menampilkan hasil resolusi: `your-router.ddns.net → 123.45.67.89`
+- Jika gagal, akan muncul pesan error yang informatif
+
+### Deteksi IP Publik dari PPP
+
+Aplikasi dapat mendeteksi IP publik secara otomatis dari PPP (Point-to-Point Protocol) connections di MikroTik router Anda.
+
+#### Cara Kerja:
+1. **PPP Detection**: Sistem mengambil data dari `/ppp/active` endpoint
+2. **IP Extraction**: Mengekstrak IP publik dari field `caller-id`
+3. **Real-time Display**: Menampilkan IP publik di halaman Router Config
+4. **Auto-refresh**: IP publik diperbarui secara otomatis
+
+#### Fitur IP Publik:
+- ✅ **Auto Detection**: Mendeteksi IP publik dari PPP connections
+- ✅ **Multiple IPs**: Mendukung multiple PPP connections
+- ✅ **Real-time Status**: Menampilkan status koneksi dan uptime
+- ✅ **Copy to Clipboard**: Mudah copy IP untuk konfigurasi
+
+#### Contoh Output:
+```
+Connection: ovpn-bahagia
+Service: ovpn
+Public IP: 101.128.100.230
+Uptime: 4d 19:10:41
+```
+
+## 4. Konfigurasi Integrasi Google (OAuth)
 
 Integrasi Google memungkinkan pengguna login ke hotspot menggunakan akun Google mereka.
 

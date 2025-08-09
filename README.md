@@ -1,138 +1,214 @@
-# 🚀 MikroTik Hotspot Management System
+# MyWiFi Multi-Tenant Hotspot Management System
 
-Sistem manajemen hotspot MikroTik dengan arsitektur modern menggunakan Laravel backend dan React frontend.
+Sistem manajemen hotspot MikroTik multi-tenant yang lengkap dengan backend Laravel dan frontend React.
 
-## 📁 Struktur Proyek
+## 🚀 Fitur Utama
+
+### 🔐 Multi-Tenant System
+- Isolasi data per tenant
+- Manajemen pengguna dan role per tenant
+- Konfigurasi MikroTik terpisah per tenant
+
+### 📱 Fonnte WhatsApp API Integration
+- Verifikasi OTP via WhatsApp
+- Konfigurasi OTP yang fleksibel (expiry, length, template)
+- Multi-tenant OTP settings
+
+### 🌐 MikroTik Integration
+- **Host (IP Publik / DDNS)**: Support IP public dan DDNS otomatis
+- Auto-resolve DDNS ke IP address
+- Test koneksi real-time
+- Monitoring status router
+- Backup dan restore konfigurasi
+
+### 🎨 Modern UI/UX
+- Dark/Light theme
+- Responsive design
+- Real-time notifications
+- Interactive dashboard
+
+## 🏗️ Arsitektur
 
 ```
 mywifi/
-├── backend/                    # Laravel Backend API
+├── backend/                 # Laravel API Backend
 │   ├── app/
-│   │   ├── Http/Controllers/   # API Controllers
-│   │   ├── Models/            # Eloquent Models
-│   │   ├── Services/          # Business Logic Services
-│   │   ├── Exports/           # Excel Export Classes
-│   │   ├── Imports/           # Excel Import Classes
-│   │   └── Exceptions/        # Custom Exception Handlers
-│   ├── config/                # Laravel Configuration
-│   ├── database/              # Migrations & Seeders
-│   ├── routes/                # API Routes
-│   ├── storage/               # File Storage & Logs
-│   └── .env                   # Environment Configuration
-│
-├── frontend/                   # React Frontend
+│   │   ├── Http/Controllers/
+│   │   ├── Models/
+│   │   ├── Services/
+│   │   └── Exceptions/
+│   ├── database/
+│   └── routes/
+├── frontend/                # React TypeScript Frontend
 │   ├── src/
-│   │   ├── components/        # React Components
-│   │   ├── pages/            # Page Components
-│   │   ├── contexts/         # React Contexts
-│   │   ├── types/            # TypeScript Types
-│   │   └── integrations/     # External Integrations
-│   ├── public/               # Static Assets
-│   ├── package.json          # Frontend Dependencies
-│   └── vite.config.ts        # Vite Configuration
-│
-└── docs/                      # Documentation Files
-    ├── ARSITEKTUR_APLIKASI.md
-    ├── LARAVEL_BACKEND_GUIDE.md
-    └── API_CONFIGURATION_GUIDE.md
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   ├── services/
+│   │   └── types/
+│   └── public/
+└── docs/                    # Dokumentasi
 ```
+
+## 🛠️ Tech Stack
+
+### Backend
+- **Laravel 10** - PHP Framework
+- **SQLite** - Database (development)
+- **Laravel Sanctum** - Authentication
+- **MikroTik API** - Router integration
+
+### Frontend
+- **React 18** - UI Framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **Tailwind CSS** - Styling
+- **Lucide React** - Icons
+
+## 📋 Prerequisites
+
+- PHP 8.1+
+- Node.js 18+
+- Composer
+- MikroTik Router dengan API enabled
 
 ## 🚀 Quick Start
 
-### Backend (Laravel)
+### 1. Clone Repository
+```bash
+git clone https://github.com/berryprimaj/mywifi-multi-tenant.git
+cd mywifi-multi-tenant
+```
+
+### 2. Backend Setup
 ```bash
 cd backend
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-### Frontend (React)
+### 3. Frontend Setup
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 
-## 🔗 Access URLs
+### 4. Access Application
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
 
-- **Backend API**: http://127.0.0.1:8000
-- **Frontend App**: http://localhost:5173
-- **API Documentation**: http://127.0.0.1:8000/api
+## ⚙️ Konfigurasi
 
-## 🔑 Default Credentials
+### Environment Variables
+```env
+# Backend (.env)
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
 
-- **Username**: admin
-- **Password**: admin
-- **Role**: Super Administrator
+# MikroTik Settings
+MIKROTIK_HOST=your.router.ip
+MIKROTIK_PORT=8728
+MIKROTIK_USERNAME=admin
+MIKROTIK_PASSWORD=password
 
-## ✨ Features
+# Fonnte WhatsApp API
+FONTE_API_KEY=your_api_key
+FONTE_DEVICE_ID=your_device_id
+FONTE_PHONE_NUMBER=your_phone_number
+```
 
-### 🔧 Backend Features
-- ✅ RESTful API dengan Laravel
-- ✅ Authentication dengan Sanctum
-- ✅ Real MikroTik Integration
-- ✅ Advanced Analytics
-- ✅ Excel Import/Export
-- ✅ Enhanced Security (Rate Limiting, Audit Logs)
-- ✅ File Upload Management
-- ✅ Multi-tenant Support
+### MikroTik Configuration
+1. Enable API di MikroTik
+2. Set API port (default: 8728)
+3. Buat user dengan permission API
+4. Konfigurasi firewall untuk allow API access
 
-### 🎨 Frontend Features
-- ✅ Modern React dengan TypeScript
-- ✅ Responsive Design dengan Tailwind CSS
-- ✅ Real-time Dashboard
-- ✅ Admin Panel
-- ✅ Hotspot Login Portal
-- ✅ Charts & Analytics Visualization
+## 🔧 Fitur Host (IP Publik / DDNS)
 
-## 📊 Tech Stack
+Sistem secara otomatis mendeteksi dan resolve:
 
-### Backend
-- **Framework**: Laravel 11
-- **Database**: SQLite
-- **Authentication**: Laravel Sanctum
-- **Excel**: Maatwebsite/Excel
-- **HTTP Client**: Guzzle
+### IP Public
+```
+Host: 203.194.112.34
+→ Langsung gunakan IP
+```
 
-### Frontend
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **Charts**: Recharts
-- **Icons**: Lucide React
-- **Notifications**: React Hot Toast
+### DDNS
+```
+Host: mikrotik.ddns.net
+→ Auto-resolve ke IP address
+→ Test DDNS untuk verifikasi
+```
 
-## 🛡️ Security Features
+## 📱 Fonnte WhatsApp OTP
 
-- Rate Limiting
-- Audit Logging
-- Password Strength Validation
-- Suspicious Activity Detection
-- Account Locking
-- CORS Protection
+### Konfigurasi OTP
+- **Toggle Enable/Disable** OTP verification
+- **OTP Expiry**: Durasi masa berlaku (detik)
+- **OTP Length**: Panjang kode OTP
+- **Message Template**: Template pesan dengan variables `{otp}`, `{expiry}`, `{site_name}`
 
-## 📈 Analytics Features
+### Multi-Tenant
+- Setiap tenant memiliki konfigurasi OTP terpisah
+- API key dan device ID per tenant
+- Phone number untuk WhatsApp
 
-- Real-time Statistics
-- User Growth Charts
-- Bandwidth Usage Monitoring
-- Device Type Distribution
-- Peak Hours Analysis
-- Revenue Tracking
+## 🚀 Deployment
 
-## 🔧 MikroTik Integration
+### Production Checklist
+- [ ] Set environment variables
+- [ ] Configure database (MySQL/PostgreSQL)
+- [ ] Set up web server (Nginx/Apache)
+- [ ] Configure SSL certificates
+- [ ] Set up backup system
+- [ ] Configure logging
 
-- Router Status Monitoring
-- Network Interface Management
-- Hotspot Profile Configuration
-- Backup & Restore
-- Connection Testing
+### Hosting Platforms
+- **Aapanel**: [DEPLOYMENT_AAPANEL.md](DEPLOYMENT_AAPANEL.md)
+- **Hostinger**: [DEPLOYMENT_HOSTINGER.md](DEPLOYMENT_HOSTINGER.md)
 
-## 📁 Import/Export
+## 📚 Dokumentasi
 
-- Excel Member Import
-- CSV Template Download
-- Bulk Data Export
-- Data Validation
+- [Arsitektur Aplikasi](ARSITEKTUR_APLIKASI.md)
+- [Konfigurasi Environment](ENVIRONMENT_CONFIGURATION.md)
+- [Konfigurasi Database](DATABASE_CONFIGURATION.md)
+- [Konfigurasi API](API_CONFIGURATION_GUIDE.md)
+- [Konfigurasi Tenant Login](TENANT_LOGIN_PAGE_CONFIG.md)
 
-## 🚀 Production Ready
+## 🤝 Contributing
 
-Aplikasi ini sudah siap untuk deployment production dengan fitur enterprise-level!
+1. Fork repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+Untuk bantuan dan pertanyaan:
+- Buat issue di GitHub
+- Dokumentasi lengkap tersedia di folder `docs/`
+
+## 🔄 Changelog
+
+### v1.0.0
+- ✅ Multi-tenant system
+- ✅ Fonnte WhatsApp API integration
+- ✅ MikroTik DDNS auto-resolution
+- ✅ Modern React UI
+- ✅ Laravel backend API
+- ✅ OTP verification system
+- ✅ Real-time notifications
+- ✅ Dark/Light theme
+- ✅ Responsive design
+
+---
+
+**MyWiFi Multi-Tenant** - Solusi lengkap untuk manajemen hotspot MikroTik multi-tenant 🚀

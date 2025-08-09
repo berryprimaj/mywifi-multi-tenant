@@ -11,7 +11,7 @@ Ini adalah langkah paling krusial untuk mengubah aplikasi dari simulasi lokal me
     *   Ini akan membuat data persisten, aman, dan dapat diakses oleh banyak pengguna/admin secara bersamaan.
 *   **Implementasi API Nyata**:
     *   **MikroTik API**: Buat endpoint di Laravel yang benar-benar berkomunikasi dengan router MikroTik Anda. Ini termasuk mengambil status real-time (uptime, pengguna aktif, bandwidth), mengelola antarmuka jaringan, profil hotspot, dan melakukan aksi administratif (backup, restart hotspot, reboot).
-    *   **Fonte WhatsApp API**: Implementasikan fungsionalitas pengiriman OTP WhatsApp yang sebenarnya melalui API Fonte.id untuk proses login hotspot.
+    *   **Fonnte WhatsApp API**: Implementasikan fungsionalitas pengiriman OTP WhatsApp yang sebenarnya melalui API Fonnte.com untuk proses login hotspot.
     *   **Google OAuth**: Selesaikan integrasi Google OAuth agar pengguna hotspot dapat login dengan akun Google mereka melalui backend Laravel.
 *   **Autentikasi & Otorisasi Backend**:
     *   Ganti sistem autentikasi lokal di frontend dengan Laravel Sanctum untuk mengelola sesi admin.

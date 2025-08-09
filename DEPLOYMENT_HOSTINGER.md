@@ -83,32 +83,34 @@ php artisan view:cache
 #### 3.1 Upload via File Manager
 1. Buka **File Manager** di hPanel
 2. Navigate ke folder `public_html/`
-3. Buat folder `api/` untuk backend
-4. Upload dan extract `backend.zip` ke folder `api/`
+3. Upload dan extract `backend.zip` ke folder `public_html/`
+4. Folder akan otomatis bernama `backend/`
 
 #### 3.2 Setup Folder Structure
 ```
 public_html/
-├── api/                    # Laravel Backend
+├── backend/                # Laravel Backend
 │   ├── app/
 │   ├── config/
 │   ├── database/
 │   ├── routes/
 │   ├── storage/
 │   ├── vendor/
-│   ├── .env
+│   ├── .env               # Buat file ini manual
 │   └── index.php
-└── index.html             # Frontend (dari dist/)
+├── assets/                 # Frontend assets
+├── index.html             # Frontend (dari dist/)
+└── .htaccess              # Web server config
 ```
 
 #### 3.3 Konfigurasi .env
-Buat file `public_html/api/.env` (karena tidak di-commit ke GitHub):
+Buat file `public_html/backend/.env` (karena tidak di-commit ke GitHub):
 ```env
 APP_NAME="MikroTik Hotspot Management"
 APP_ENV=production
 APP_KEY=base64:YOUR_APP_KEY_HERE
 APP_DEBUG=false
-APP_URL=https://yourdomain.com/api
+APP_URL=https://yourdomain.com/backend
 
 LOG_CHANNEL=stack
 LOG_DEPRECATIONS_CHANNEL=null

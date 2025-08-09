@@ -1,6 +1,7 @@
-import React from 'react';
-import { Router, Save, Globe, Server } from 'lucide-react';
+import React, { useState } from 'react';
+import { Router, Save, Globe, Server, CheckCircle, AlertCircle } from 'lucide-react';
 import { ApiKeys } from '../../../contexts/SettingsContext';
+import toast from 'react-hot-toast';
 
 interface MikrotikConnectionSettingsProps {
   apiKeys: ApiKeys;
@@ -19,9 +20,62 @@ const MikrotikConnectionSettings: React.FC<MikrotikConnectionSettingsProps> = ({
   isOnlineMode,
   setIsOnlineMode,
 }) => {
+  const [ddnsStatus, setDdnsStatus] = useState<{
+    loading: boolean;
+    resolved: boolean;
+    ip?: string;
+    message?: string;
+  }>({ loading: false, resolved: false });
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     updateApiKeys({ [`mikrotik${name.charAt(0).toUpperCase() + name.slice(1)}`]: value });
+  };
+
+  const testDDNS = async () => {
+    if (!apiKeys.mikrotikHost) {
+      toast.error('Please enter a host address first');
+      return;
+    }
+
+    setDdnsStatus({ loading: true, resolved: false });
+
+    try {
+      const response = await fetch('/api/mikrotik/test-ddns', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ host: apiKeys.mikrotikHost })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setDdnsStatus({
+          loading: false,
+          resolved: true,
+          ip: result.data.resolved_ip,
+          message: result.message
+        });
+        toast.success(`DDNS resolved successfully: ${result.data.resolved_ip}`);
+      } else {
+        setDdnsStatus({
+          loading: false,
+          resolved: false,
+          message: result.message
+        });
+        toast.error(result.message);
+      }
+    } catch (error) {
+      setDdnsStatus({
+        loading: false,
+        resolved: false,
+        message: 'Failed to test DDNS'
+      });
+      toast.error('Failed to test DDNS resolution');
+    }
   };
 
   return (
@@ -53,7 +107,46 @@ const MikrotikConnectionSettings: React.FC<MikrotikConnectionSettingsProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {isOnlineMode ? 'Host (IP Publik / DDNS)' : 'Host (IP Lokal)'}
           </label>
-          <input type="text" name="host" value={apiKeys.mikrotikHost} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder={isOnlineMode ? 'e.g., 123.45.67.89' : 'e.g., 192.168.1.1'} />
+          <div className="relative">
+            <input 
+              type="text" 
+              name="host" 
+              value={apiKeys.mikrotikHost} 
+              onChange={handleInputChange} 
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg pr-20" 
+              placeholder={isOnlineMode ? 'e.g., your.ddns.net or IP publik dari PPP' : 'e.g., 192.168.1.1'} 
+            />
+            {isOnlineMode && apiKeys.mikrotikHost && (
+              <button
+                onClick={testDDNS}
+                disabled={ddnsStatus.loading}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+              >
+                {ddnsStatus.loading ? 'Testing...' : 'Test DDNS'}
+              </button>
+            )}
+          </div>
+          
+          {/* DDNS Status Display */}
+          {isOnlineMode && ddnsStatus.message && (
+            <div className={`mt-2 p-2 rounded text-xs flex items-center ${
+              ddnsStatus.resolved 
+                ? 'bg-green-50 text-green-700 border border-green-200' 
+                : 'bg-red-50 text-red-700 border border-red-200'
+            }`}>
+              {ddnsStatus.resolved ? (
+                <CheckCircle className="w-4 h-4 mr-1" />
+              ) : (
+                <AlertCircle className="w-4 h-4 mr-1" />
+              )}
+              <span>
+                {ddnsStatus.resolved 
+                  ? `DDNS resolved: ${apiKeys.mikrotikHost} → ${ddnsStatus.ip}`
+                  : ddnsStatus.message
+                }
+              </span>
+            </div>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">API Port</label>

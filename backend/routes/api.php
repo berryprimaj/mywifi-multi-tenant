@@ -67,7 +67,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // MikroTik Router Management
     Route::get('/mikrotik/status/{tenantId?}', [MikroTikController::class, 'getStatus']);
+    Route::get('/mikrotik/public-ip/{tenantId?}', [MikroTikController::class, 'getPublicIP']);
     Route::post('/mikrotik/test-connection/{tenantId?}', [MikroTikController::class, 'testConnection']);
+    Route::post('/mikrotik/test-ddns', [MikroTikController::class, 'testDDNS']);
     Route::post('/mikrotik/backup/{tenantId?}', [MikroTikController::class, 'createBackup']);
     Route::post('/mikrotik/restart-hotspot/{tenantId?}', [MikroTikController::class, 'restartHotspot']);
     Route::post('/mikrotik/reboot/{tenantId?}', [MikroTikController::class, 'rebootRouter']);
